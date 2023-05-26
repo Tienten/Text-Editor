@@ -1,4 +1,4 @@
-/*** includes ***/
+// includes
 
 #include <ctype.h>
 #include <stdio.h>
@@ -6,11 +6,11 @@
 #include <termios.h>
 #include <unistd.h>
 
-/*** data ***/
+// data
 
 struct termios orig_termios;     // global variable. struct is a collection of dat and the members are allocated sequentially
 
-/*** terminal ***/
+ // low-level terminla input
 
 void die(const char *s) {
     perror(s);
@@ -37,7 +37,27 @@ void enableRawMode() {  //get us into raw mode
     if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1) die("tcsetattr");   // AFter modifying the terminal attributes, they can be applyied to the terminal using tcsetattr(). the TCSAFLUSH argument specifies when to apply the change: in this func, it waits for all pending output to be written to the terminal, and also discards any input that hasn't been read.
 }
 
-/*** init ***/
+char editorReadKey() {  //wait for keypress and return 
+    int nread;
+    char c;
+    while ((nread = read(STDIN_FILENO, &c, 1)) != 1) {
+        if (nread == -1 && erno != EAGAIN) die("read");
+    }
+    return c;
+}
+
+// high-level input
+
+void editorProcessKeypress() { //wait for keypress and handles
+    char c = editorReadKey();
+    switch (c) {
+        case CTRL_KEY('q'):
+            exit(0);
+            break;
+    }
+}
+
+// init
 
 int main() {
     enableRawMode();
@@ -56,6 +76,8 @@ int main() {
     
     return 0;   //a return of value 0 means success
 }
+
+
 
 
 
